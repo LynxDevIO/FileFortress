@@ -40,4 +40,15 @@ public class ConfigManager {
             e.printStackTrace();
         }
     }
+
+    public static boolean isFirstRun() {
+        Map<String, String> config = loadConfig();
+        return !config.containsKey("tutorialShown");
+    }
+
+    public static void setTutorialShown() {
+        Map<String, String> config = loadConfig();
+        config.put("tutorialShown", "true");
+        saveConfig(config);
+    }
 }

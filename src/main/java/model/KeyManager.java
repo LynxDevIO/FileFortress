@@ -16,7 +16,7 @@ public class KeyManager {
         return keyGen.generateKey();
     }
 
-    public static void saveKeyAndUsers(SecretKey key, String password, File file, Map<String, String> users) throws Exception {
+    public static void saveKeyAndUsers(SecretKey key, File file, Map<String, User> users) throws Exception {
         Cipher cipher = Cipher.getInstance(ALGORITHM);
         cipher.init(Cipher.ENCRYPT_MODE, key);
 
@@ -43,7 +43,7 @@ public class KeyManager {
         }
     }
 
-    public static Map<String, String> loadUsers(SecretKey key, File file) throws Exception {
+    public static Map<String, User> loadUsers(SecretKey key, File file) throws Exception {
         Cipher cipher = Cipher.getInstance(ALGORITHM);
         cipher.init(Cipher.DECRYPT_MODE, key);
 
@@ -56,7 +56,7 @@ public class KeyManager {
             ByteArrayInputStream bais = new ByteArrayInputStream(usersData);
             ObjectInputStream ois2 = new ObjectInputStream(bais);
 
-            return (Map<String, String>) ois2.readObject();
+            return (Map<String, User>) ois2.readObject();
         }
     }
 }

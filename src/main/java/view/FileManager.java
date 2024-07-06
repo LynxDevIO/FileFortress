@@ -10,10 +10,10 @@ import model.UserManager;
 
 import javax.crypto.SecretKey;
 import javax.swing.*;
-        import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import java.awt.*;
-        import java.awt.event.WindowAdapter;
+import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
@@ -64,18 +64,27 @@ public class FileManager {
         // Load config
         config = ConfigManager.loadConfig();
 
+        // Check if it's the first run and show the tutorial window if needed
+        if (ConfigManager.isFirstRun()) {
+            showTutorialWindow();
+            ConfigManager.setTutorialShown();
+        }
+
         // Initial config to load master key
         if (!showKeyFileDialog()) {
             System.exit(0);
         }
 
         // UserManager config with a master key
-        try {
-            userManager = new UserManager(masterKey, new File(config.get("lastKeyPath")));
-        } catch (Exception e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(frame, "Error while loading users: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-            System.exit(0);
+        String lastKeyPath = config.get("lastKeyPath");
+        if (lastKeyPath != null) {
+            try {
+                userManager = new UserManager(masterKey, new File(lastKeyPath));
+            } catch (Exception e) {
+                e.printStackTrace();
+                JOptionPane.showMessageDialog(frame, "Error while loading users: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                System.exit(0);
+            }
         }
 
         // Show login screen and get master key
@@ -89,7 +98,7 @@ public class FileManager {
             System.out.println("Temporary Directory created: " + tempDir.toString());
         } catch (IOException e) {
             e.printStackTrace();
-            JOptionPane.showMessageDialog(frame, "Error while creating temporary directory: " + e.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(frame, "Error while creating temporary directory: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             System.exit(0);
         }
 
@@ -128,6 +137,11 @@ public class FileManager {
         exitCFM.addActionListener(_ -> exitCFM());
 
         frame.setVisible(true);
+    }
+
+    private void showTutorialWindow() {
+        TutorialWindow tutorialWindow = new TutorialWindow(frame);
+        tutorialWindow.setVisible(true);
     }
 
     void importFilesOrDirectories() {
@@ -182,54 +196,66 @@ public class FileManager {
     }
 
     private boolean showKeyFileDialog() {
-        String lastKeyPath = config.get("lastKeyPath");
-        if (lastKeyPath != null) {
-            int response = JOptionPane.showConfirmDialog(frame, "Use the last master key file? \n" + "At " + lastKeyPath + "?", "Master Key", JOptionPane.YES_NO_OPTION);
-            if (response == JOptionPane.YES_OPTION) {
-                JPasswordField passwordField = new JPasswordField();
-                int option = JOptionPane.showConfirmDialog(frame, passwordField, "Type master password:", JOptionPane.OK_CANCEL_OPTION);
-                if (option == JOptionPane.OK_OPTION) {
-                    String masterPassword = new String(passwordField.getPassword());
-                    try {
-                        masterKey = KeyManager.loadKey(masterPassword, new File(lastKeyPath));
-                        userManager = new UserManager(masterKey, new File(lastKeyPath));
-                        return true;
-                    } catch (Exception e) {
-                        JOptionPane.showMessageDialog(frame, "Error while loading master key: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-                    }
-                } else {
-                    return false;
-                }
-            }
-        }
         JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setDialogTitle("Choose the master key file or create a new one");
-        int result = fileChooser.showDialog(frame, "Choose or Create");
-        File keyFile; // already Null
+        fileChooser.setDialogTitle("Select or Create Master Key File");
+
+        // Set a custom file filter to show only .3f files
+        fileChooser.setFileFilter(new javax.swing.filechooser.FileFilter() {
+            @Override
+            public boolean accept(File f) {
+                return f.isDirectory() || f.getName().toLowerCase().endsWith(".3f");
+            }
+
+            @Override
+            public String getDescription() {
+                return "Master Key Files (*.3f)";
+            }
+        });
+
+        int result = fileChooser.showSaveDialog(frame);
+        File masterKeyFile; // Null
 
         if (result == JFileChooser.APPROVE_OPTION) {
-            keyFile = fileChooser.getSelectedFile();
+            masterKeyFile = fileChooser.getSelectedFile();
+            if (!masterKeyFile.getName().endsWith(".3f")) {
+                masterKeyFile = new File(masterKeyFile.getAbsolutePath() + ".3f");
+            }
         } else {
             return false;
         }
 
-        JPasswordField passwordField = new JPasswordField();
-        int option = JOptionPane.showConfirmDialog(frame, passwordField, "Type master password:", JOptionPane.OK_CANCEL_OPTION);
-        if (option == JOptionPane.OK_OPTION) {
-            String masterPassword = new String(passwordField.getPassword());
-            try {
-                if (keyFile.exists()) {
-                    masterKey = KeyManager.loadKey(masterPassword, keyFile);
-                } else {
-                    masterKey = KeyManager.generateKey();
-                    KeyManager.saveKeyAndUsers(masterKey, masterPassword, keyFile, new HashMap<>());
+        if (masterKeyFile.exists()) {
+            JPasswordField passwordField = new JPasswordField();
+            int option = JOptionPane.showConfirmDialog(frame, passwordField, "Type master password:", JOptionPane.OK_CANCEL_OPTION);
+            if (option == JOptionPane.OK_OPTION) {
+                String masterPassword = new String(passwordField.getPassword());
+                try {
+                    masterKey = KeyManager.loadKey(masterPassword, masterKeyFile);
+                    userManager = new UserManager(masterKeyFile, masterPassword);
+                    config.put("lastKeyPath", masterKeyFile.getAbsolutePath()); // Save the key path
+                    ConfigManager.saveConfig(config);
+                    return true;
+                } catch (Exception e) {
+                    JOptionPane.showMessageDialog(frame, "Error while loading master key: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
                 }
-                userManager = new UserManager(masterKey, keyFile);
-                config.put("lastKeyPath", keyFile.getAbsolutePath());
-                ConfigManager.saveConfig(config);
-                return true;
-            } catch (Exception e) {
-                JOptionPane.showMessageDialog(frame, "Error while loading or creating the master key: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            } else {
+                return false;
+            }
+        } else {
+            JPasswordField passwordField = new JPasswordField();
+            int option = JOptionPane.showConfirmDialog(frame, passwordField, "Create a master password:", JOptionPane.OK_CANCEL_OPTION);
+            if (option == JOptionPane.OK_OPTION) {
+                String masterPassword = new String(passwordField.getPassword());
+                try {
+                    masterKey = KeyManager.generateKey();
+                    KeyManager.saveKeyAndUsers(masterKey, masterKeyFile, new HashMap<>());
+                    userManager = new UserManager(masterKey, masterKeyFile);
+                    config.put("lastKeyPath", masterKeyFile.getAbsolutePath()); // Save the key path
+                    ConfigManager.saveConfig(config);
+                    return true;
+                } catch (Exception e) {
+                    JOptionPane.showMessageDialog(frame, "Error while creating master key: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                }
             }
         }
         return false;
