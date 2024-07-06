@@ -2,6 +2,10 @@
 
 FileFortress aims to be a secure file management application designed to help users safely store and organize their files. It supports creating, opening, and importing encrypted containers for enhanced security.
 
+## Attention
+Please, if you try this program do so with caution, because it is in development.
+You can build it by yourself using Maven.
+
 ## Features
 - Create new encrypted containers.
 - Open and manage existing containers.
