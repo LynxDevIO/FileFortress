@@ -46,7 +46,7 @@ public class FileManager {
     private JButton exitCFM;
 
     public FileManager() {
-        frame = new JFrame("CFM");
+        frame = new JFrame("FileFortress");
         frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE); // Prevent default close operation
         frame.setSize(600, 400);
 
