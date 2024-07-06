@@ -1,0 +1,29 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*-alpha'  # Match any semantic versioning with alpha suffix
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v2
+
+      - name: Set up JDK 17  # Using a stable version of Java
+        uses: actions/setup-java@v2
+        with:
+          java-version: 17
+
+      - name: Build with Maven
+        run: mvn clean install
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: target/*.jar
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

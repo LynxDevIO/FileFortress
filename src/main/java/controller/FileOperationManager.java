@@ -1,6 +1,6 @@
 package controller;
 
-import view.FrameManager;
+import view.FileManager;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -16,14 +16,14 @@ public class FileOperationManager {
     private final JProgressBar progressBar;
     private final DefaultTreeModel treeModel;
     private final JTree tree;
-    private final FrameManager frameManager;
+    private final FileManager fileManager;
 
-    public FileOperationManager(Path tempDir, JProgressBar progressBar, DefaultTreeModel treeModel, JTree tree, FrameManager frameManager) {
+    public FileOperationManager(Path tempDir, JProgressBar progressBar, DefaultTreeModel treeModel, JTree tree, FileManager fileManager) {
         this.tempDir = tempDir;
         this.progressBar = progressBar;
         this.treeModel = treeModel;
         this.tree = tree;
-        this.frameManager = frameManager;
+        this.fileManager = fileManager;
     }
 
     public void loadDirectory(Path path, DefaultMutableTreeNode parent) {
@@ -57,7 +57,6 @@ public class FileOperationManager {
             File[] selectedFiles = fileChooser.getSelectedFiles();
             new Thread(() -> {
                 try {
-                    frameManager.setButtonsEnabled(false);
                     progressBar.setValue(0);
                     progressBar.setString(null);
                     for (File file : selectedFiles) {
@@ -71,8 +70,6 @@ public class FileOperationManager {
                     SwingUtilities.invokeLater(() -> loadDirectory(tempDir, (DefaultMutableTreeNode) treeModel.getRoot()));
                 } catch (IOException e) {
                     e.printStackTrace();
-                } finally {
-                    frameManager.setButtonsEnabled(true);
                 }
             }).start();
         }

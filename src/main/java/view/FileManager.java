@@ -70,19 +70,21 @@ public class FileManager {
             ConfigManager.setTutorialShown();
         }
 
-        // Initial config to load master key
-        if (!showKeyFileDialog()) {
-            System.exit(0);
-        }
-
-        // UserManager config with a master key
+        // Check if the last key path exists and prompt the user
         String lastKeyPath = config.get("lastKeyPath");
         if (lastKeyPath != null) {
-            try {
-                userManager = new UserManager(masterKey, new File(lastKeyPath));
-            } catch (Exception e) {
-                e.printStackTrace();
-                JOptionPane.showMessageDialog(frame, "Error while loading users: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            int response = JOptionPane.showConfirmDialog(frame, "Use the last master key file?\n" + "At: " + lastKeyPath, "Master Key", JOptionPane.YES_NO_OPTION);
+            if (response == JOptionPane.YES_OPTION) {
+                if (!loadMasterKeyAndUsers(lastKeyPath)) {
+                    System.exit(0);
+                }
+            } else {
+                if (!showKeyFileDialog()) {
+                    System.exit(0);
+                }
+            }
+        } else {
+            if (!showKeyFileDialog()) {
                 System.exit(0);
             }
         }
@@ -131,12 +133,24 @@ public class FileManager {
         frame.add(panel, BorderLayout.SOUTH);
 
         // Button actions
-        createButton.addActionListener(_ -> createContainer());
-        importButton.addActionListener(_ -> importContainer());
-        importFile.addActionListener(_ -> importFilesOrDirectories());
-        exitCFM.addActionListener(_ -> exitCFM());
+        createButton.addActionListener(e -> createContainer());
+        importButton.addActionListener(e -> importContainer());
+        importFile.addActionListener(e -> importFilesOrDirectories());
+        exitCFM.addActionListener(e -> exitCFM());
 
         frame.setVisible(true);
+    }
+
+    private boolean loadMasterKeyAndUsers(String lastKeyPath) {
+        try {
+            masterKey = KeyManager.loadKey("", new File(lastKeyPath)); // Assuming password is handled elsewhere
+            userManager = new UserManager(masterKey, new File(lastKeyPath));
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(frame, "Error while loading master key: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            return false;
+        }
     }
 
     private void showTutorialWindow() {
@@ -171,8 +185,8 @@ public class FileManager {
                     e.printStackTrace();
                     SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(frame, "Error while importing files/directories: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE));
                 } finally {
-                    contextMenuManager.updateProgressBarCompleted();
                     refreshTree();
+                    contextMenuManager.updateProgressBarCompleted();
                 }
             }).start();
         }
@@ -196,21 +210,7 @@ public class FileManager {
     }
 
     private boolean showKeyFileDialog() {
-        JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setDialogTitle("Select or Create Master Key File");
-
-        // Set a custom file filter to show only .3f files
-        fileChooser.setFileFilter(new javax.swing.filechooser.FileFilter() {
-            @Override
-            public boolean accept(File f) {
-                return f.isDirectory() || f.getName().toLowerCase().endsWith(".3f");
-            }
-
-            @Override
-            public String getDescription() {
-                return "Master Key Files (*.3f)";
-            }
-        });
+        JFileChooser fileChooser = getjFileChooser();
 
         int result = fileChooser.showSaveDialog(frame);
         File masterKeyFile; // Null
@@ -259,6 +259,25 @@ public class FileManager {
             }
         }
         return false;
+    }
+
+    private static JFileChooser getjFileChooser() {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Select or Create Master Key File");
+
+        // Set a custom file filter to show only .3f files
+        fileChooser.setFileFilter(new javax.swing.filechooser.FileFilter() {
+            @Override
+            public boolean accept(File f) {
+                return f.isDirectory() || f.getName().toLowerCase().endsWith(".3f");
+            }
+
+            @Override
+            public String getDescription() {
+                return "Master Key Files (*.3f)";
+            }
+        });
+        return fileChooser;
     }
 
     private boolean showLoginDialog() {
@@ -316,13 +335,13 @@ public class FileManager {
 
         final boolean[] loggedIn = {false};
 
-        loginButton.addActionListener(_ -> {
+        loginButton.addActionListener(e -> {
             String username = usernameField.getText();
             String password = new String(passwordField.getPassword());
             User user = userManager.authenticate(username, password);
             if (user != null) {
                 currentUser = user;
-                // String lastContainerPath = config.get("lastContainerPath_" + username);
+                String lastContainerPath = config.get("lastContainerPath_" + username);
                 loggedIn[0] = true;
                 loginDialog.dispose();
             } else {
@@ -330,7 +349,7 @@ public class FileManager {
             }
         });
 
-        registerButton.addActionListener(_ -> {
+        registerButton.addActionListener(e -> {
             String username = usernameField.getText();
             String password = new String(passwordField.getPassword());
             try {
@@ -508,5 +527,31 @@ public class FileManager {
     public void refreshTree() {
         root.removeAllChildren();
         loadDirectory(tempDir, root);
+    }
+
+    public JFrame getFrame() {
+        return frame;
+    }
+
+    public JTree getTree() {
+        return tree;
+    }
+
+    public DefaultMutableTreeNode getRoot() {
+        return root;
+    }
+
+    public JProgressBar getProgressBar() {
+        return progressBar;
+    }
+
+    // TODO: not working properly... Buttons are said to be Null when this code runs
+    public void setButtonsEnabled(boolean enabled) {
+        SwingUtilities.invokeLater(() -> {
+            createButton.setEnabled(enabled);
+            importButton.setEnabled(enabled);
+            importFile.setEnabled(enabled);
+            exitCFM.setEnabled(enabled);
+        });
     }
 }

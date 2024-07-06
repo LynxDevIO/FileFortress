@@ -395,7 +395,7 @@ public class ContextMenuManager {
 
         JButton selectButton = new JButton("Select");
         final TreePath[] selectedPath = new TreePath[1];
-        selectButton.addActionListener(_ -> {
+        selectButton.addActionListener(e -> {
             selectedPath[0] = directoryTree.getSelectionPath();
             dialog.dispose();
         });

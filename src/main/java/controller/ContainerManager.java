@@ -3,7 +3,6 @@ package controller;
 import model.EncryptedContainer;
 import model.User;
 import model.UserManager;
-import view.FrameManager;
 import view.FileManager;
 
 import javax.crypto.SecretKey;
@@ -17,15 +16,13 @@ public class ContainerManager {
     private final UserManager userManager;
     private final Path tempDir;
     private final JProgressBar progressBar;
-    private final FrameManager frameManager;
     private final FileManager fileManager;
 
-    public ContainerManager(SecretKey masterKey, UserManager userManager, Path tempDir, JProgressBar progressBar, FrameManager frameManager, FileManager fileManager) {
+    public ContainerManager(SecretKey masterKey, UserManager userManager, Path tempDir, JProgressBar progressBar, FileManager fileManager) {
         this.masterKey = masterKey;
         this.userManager = userManager;
         this.tempDir = tempDir;
         this.progressBar = progressBar;
-        this.frameManager = frameManager;
         this.fileManager = fileManager;
     }
 
@@ -42,7 +39,6 @@ public class ContainerManager {
                 File saveFile = saveChooser.getSelectedFile();
                 new Thread(() -> {
                     try {
-                        frameManager.setButtonsEnabled(false);
                         progressBar.setValue(0);
                         progressBar.setString(null);
                         container = new EncryptedContainer(currentUser.getEncryptionKey());
@@ -51,8 +47,6 @@ public class ContainerManager {
                         importContainer(frame, currentUser, saveFile);
                     } catch (Exception e) {
                         e.printStackTrace();
-                    } finally {
-                        frameManager.setButtonsEnabled(true);
                     }
                 }).start();
             }
@@ -72,18 +66,15 @@ public class ContainerManager {
     public void importContainer(JFrame frame, User currentUser, File file) {
         new Thread(() -> {
             try {
-                frameManager.setButtonsEnabled(false);
                 SwingUtilities.invokeLater(() -> {
                     progressBar.setValue(0);
                     progressBar.setString("COMPLETED");
                 });
                 container = new EncryptedContainer(currentUser.getEncryptionKey());
                 container.loadContainerWithProgress(file, tempDir, progressBar);
-                SwingUtilities.invokeLater(() -> fileManager.loadDirectory(tempDir, frameManager.getRoot()));
+                SwingUtilities.invokeLater(() -> fileManager.loadDirectory(tempDir, fileManager.getRoot()));
             } catch (Exception e) {
                 e.printStackTrace();
-            } finally {
-                frameManager.setButtonsEnabled(true);
             }
         }).start();
     }

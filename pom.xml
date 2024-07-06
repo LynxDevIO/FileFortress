@@ -6,11 +6,27 @@
 
     <groupId>dev.lynx</groupId>
     <artifactId>FileFortress</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>0.1.0-alpha</version>
+
+    <licenses>
+        <license>
+            <name>MIT License</name>
+            <url>https://opensource.org/licenses/MIT</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <id>lynxdev</id>
+            <name>Philipe Pedrosa</name>
+            <email>dev.lynx.io@gmail.com</email>
+        </developer>
+    </developers>
 
     <properties>
-        <maven.compiler.source>22</maven.compiler.source>
-        <maven.compiler.target>22</maven.compiler.target>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
