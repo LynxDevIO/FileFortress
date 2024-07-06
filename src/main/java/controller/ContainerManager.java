@@ -13,12 +13,12 @@ import java.nio.file.Path;
 
 public class ContainerManager {
     private EncryptedContainer container;
-    private SecretKey masterKey;
-    private UserManager userManager;
-    private Path tempDir;
-    private JProgressBar progressBar;
-    private FrameManager frameManager;
-    private FileManager fileManager;
+    private final SecretKey masterKey;
+    private final UserManager userManager;
+    private final Path tempDir;
+    private final JProgressBar progressBar;
+    private final FrameManager frameManager;
+    private final FileManager fileManager;
 
     public ContainerManager(SecretKey masterKey, UserManager userManager, Path tempDir, JProgressBar progressBar, FrameManager frameManager, FileManager fileManager) {
         this.masterKey = masterKey;

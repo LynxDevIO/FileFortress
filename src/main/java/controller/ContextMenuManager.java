@@ -417,7 +417,7 @@ public class ContextMenuManager {
 
         for (TreeNode n : nodes) {
             if (n.toString().equals("Root")) continue;
-            path.append(File.separator).append(n.toString());
+            path.append(File.separator).append(n);
         }
         return Paths.get(path.toString());
     }

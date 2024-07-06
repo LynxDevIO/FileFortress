@@ -8,16 +8,15 @@ import javax.swing.tree.DefaultTreeModel;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
-import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Stream;
 
 public class FileOperationManager {
-    private Path tempDir;
-    private JProgressBar progressBar;
-    private DefaultTreeModel treeModel;
-    private JTree tree;
-    private FrameManager frameManager;
+    private final Path tempDir;
+    private final JProgressBar progressBar;
+    private final DefaultTreeModel treeModel;
+    private final JTree tree;
+    private final FrameManager frameManager;
 
     public FileOperationManager(Path tempDir, JProgressBar progressBar, DefaultTreeModel treeModel, JTree tree, FrameManager frameManager) {
         this.tempDir = tempDir;

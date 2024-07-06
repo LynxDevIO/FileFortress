@@ -9,7 +9,7 @@ import java.util.Map;
 import java.util.Properties;
 
 public class ConfigManager {
-    private static final Path CONFIG_DIR = Paths.get(System.getProperty("user.home"), ".file_manager_app");
+    private static final Path CONFIG_DIR = Paths.get(System.getProperty("user.home"), "Documents", "CFM");
     private static final Path CONFIG_FILE = CONFIG_DIR.resolve("config.properties");
 
     public static Map<String, String> loadConfig() {

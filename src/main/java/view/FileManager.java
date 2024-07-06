@@ -35,10 +35,10 @@ public class FileManager {
     private Path tempDir;
     private UserManager userManager;
     private User currentUser;
-    private JProgressBar progressBar;
+    private final JProgressBar progressBar;
     private SecretKey masterKey;
     private final Map<String, String> config;
-    private ContextMenuManager contextMenuManager;
+    private final ContextMenuManager contextMenuManager;
     private ContainerManager containerManager;
     private JButton createButton;
     private JButton importButton;
@@ -141,6 +141,7 @@ public class FileManager {
             File[] selectedFiles = fileChooser.getSelectedFiles();
             new Thread(() -> {
                 try {
+                    contextMenuManager.resetProgressBar();
                     for (File file : selectedFiles) {
                         Path targetPath = tempDir.resolve(file.getName());
                         if (file.isDirectory()) {
@@ -155,6 +156,9 @@ public class FileManager {
                 } catch (IOException e) {
                     e.printStackTrace();
                     SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(frame, "Error while importing files/directories: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE));
+                } finally {
+                    contextMenuManager.updateProgressBarCompleted();
+                    refreshTree();
                 }
             }).start();
         }
@@ -180,7 +184,7 @@ public class FileManager {
     private boolean showKeyFileDialog() {
         String lastKeyPath = config.get("lastKeyPath");
         if (lastKeyPath != null) {
-            int response = JOptionPane.showConfirmDialog(frame, "Use the last master key file?: " + lastKeyPath + "?", "Master Key", JOptionPane.YES_NO_OPTION);
+            int response = JOptionPane.showConfirmDialog(frame, "Use the last master key file? \n" + "At " + lastKeyPath + "?", "Master Key", JOptionPane.YES_NO_OPTION);
             if (response == JOptionPane.YES_OPTION) {
                 JPasswordField passwordField = new JPasswordField();
                 int option = JOptionPane.showConfirmDialog(frame, passwordField, "Type master password:", JOptionPane.OK_CANCEL_OPTION);
@@ -201,7 +205,7 @@ public class FileManager {
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setDialogTitle("Choose the master key file or create a new one");
         int result = fileChooser.showDialog(frame, "Choose or Create");
-        File keyFile = null;
+        File keyFile; // already Null
 
         if (result == JFileChooser.APPROVE_OPTION) {
             keyFile = fileChooser.getSelectedFile();
