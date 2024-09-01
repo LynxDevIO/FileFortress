@@ -24,4 +24,4 @@ FileFortress is in active development. Basic functionalities are implemented, an
 - **Testing**: Increasing automated testing coverage to ensure reliability and stability.
 
 ## License
-This project is licensed under the BSD-3-Clause License. See the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
